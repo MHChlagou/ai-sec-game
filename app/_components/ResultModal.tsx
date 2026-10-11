@@ -2,29 +2,44 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ArrowRight, RotateCcw } from 'lucide-react';
-import type { Evaluation, Mission } from '@/lib/game';
+import type { CriterionResult, Mission } from '@/lib/game';
 import type { Achievement, Rank } from '@/lib/progression';
 import { useCountUp } from './motion';
 
+/** Precomputed by the page so one modal serves both the defense (blue) and attack (red) sides. */
 export type ResultData = {
   mission: Mission;
-  evaluation: Evaluation;
+  role: 'blue' | 'red';
+  /** Did this attempt achieve its goal? Defense: boundary held. Attack: target breached. */
+  win: boolean;
+  title: string;
+  emoji: string;
+  tone: 'success' | 'breach' | 'needs-work';
+  score: number;
+  maxScore: number;
+  results: CriterionResult[];
+  debrief: string;
+  retryLabel: string;
+  failHeading: string;
   xpGained: number;
   rankUp: Rank | null;
   newBadges: Achievement[];
-  allClear: boolean;
   nextMission: Mission | null;
+  /** How the "next" button reads, e.g. "NEXT: 👻 GHOST PIXEL". */
+  nextLabel: string;
 };
 
-const BURST = ['🛡️', '✨', '🔐', '⚡', '👾', '💾', '🧠', '🎉'];
+const BURST_BLUE = ['🛡️', '✨', '🔐', '⚡', '👾', '💾', '🧠', '🎉'];
+const BURST_RED = ['💥', '🔓', '🗡️', '⚡', '😈', '🔥', '👾', '🎉'];
 
-function EmojiBurst({ count = 28 }: { count?: number }) {
+function EmojiBurst({ role, count = 28 }: { role: 'blue' | 'red'; count?: number }) {
+  const set = role === 'red' ? BURST_RED : BURST_BLUE;
   // Random only on the client, after a click, so there is no server/client mismatch.
   const [particles] = useState(() => Array.from({ length: count }, (_, i) => {
     const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
     const distance = 160 + Math.random() * 240;
     return {
-      emoji: BURST[i % BURST.length],
+      emoji: set[i % set.length],
       dx: Math.cos(angle) * distance,
       dy: Math.sin(angle) * distance - 80,
       rot: Math.random() * 540 - 270,
@@ -50,13 +65,10 @@ type Props = {
 };
 
 export function ResultModal({ result, onClose, onRetry, onNext, onViewReport }: Props) {
-  const { mission, evaluation, xpGained, rankUp, newBadges, allClear, nextMission } = result;
-  const score = useCountUp(evaluation.score);
+  const { mission, role, win, title, emoji, tone, maxScore, results, debrief, retryLabel, failHeading, xpGained, rankUp, newBadges, nextMission, nextLabel } = result;
+  const score = useCountUp(result.score);
   const primaryRef = useRef<HTMLButtonElement>(null);
-  const passed = evaluation.passed;
-  const tone = passed ? 'success' : evaluation.leaked ? 'breach' : 'needs-work';
-  const title = passed ? (allClear ? 'SYSTEM HARDENED' : 'BOUNDARY HELD') : evaluation.leaked ? 'BREACH DETECTED' : 'DEFENSE INCOMPLETE';
-  const emoji = passed ? (allClear ? '🏆' : '🛡️') : evaluation.leaked ? '🚨' : '🧯';
+  const roleTag = role === 'red' ? '🔴 RED TEAM' : '🔵 BLUE TEAM';
 
   useEffect(() => {
     primaryRef.current?.focus();
@@ -67,28 +79,31 @@ export function ResultModal({ result, onClose, onRetry, onNext, onViewReport }: 
 
   return (
     <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      {passed && <EmojiBurst />}
-      <div className={`modal ${tone}`} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      {win && <EmojiBurst role={role} />}
+      <div className={`modal ${tone} role-${role}`} role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div className="modal-emoji" aria-hidden="true">{emoji}</div>
-        <div className="section-kicker modal-kicker"><span>{mission.emoji}</span> OP {mission.number} / {mission.title}</div>
+        <div className="section-kicker modal-kicker"><span>{mission.emoji}</span> {roleTag} <span className="panel-slash">/</span> OP {mission.number} {mission.title}</div>
         <h2 id="modal-title" className="glitch glitch-once" data-text={title}>{title}</h2>
-        <div className="modal-score" aria-label={`Score ${evaluation.score} out of ${evaluation.maxScore}`}>
-          <strong>{score}</strong><span>/ {evaluation.maxScore}</span>
+        <div className="modal-score" aria-label={`Score ${result.score} out of ${maxScore}`}>
+          <strong>{score}</strong><span>/ {maxScore}</span>
         </div>
-        <div className="modal-meter"><span style={{ width: `${(score / evaluation.maxScore) * 100}%` }} /></div>
+        <div className="modal-meter"><span style={{ width: `${(score / maxScore) * 100}%` }} /></div>
 
-        {passed ? (
+        {win ? (
           <>
             <div className="xp-gain">{xpGained > 0 ? `+${xpGained} XP` : 'NO NEW XP · BEAT YOUR BEST TO EARN MORE'}</div>
             {rankUp && <div className="rank-up">⬆️ RANK UP · {rankUp.emoji} {rankUp.title}</div>}
-            <div className="debrief"><b>🧠 DEBRIEF</b><p>{mission.debrief}</p></div>
+            <div className="debrief"><b>🧠 DEBRIEF</b><p>{debrief}</p></div>
           </>
         ) : (
-          <ul className="modal-fails">
-            {evaluation.results.filter((r) => !r.passed).slice(0, 3).map((r) => (
-              <li key={r.id}><span aria-hidden="true">×</span><div><b>{r.label}</b><small>{r.explanation}</small></div></li>
-            ))}
-          </ul>
+          <>
+            <div className="fail-heading">{failHeading}</div>
+            <ul className="modal-fails">
+              {results.filter((r) => !r.passed).slice(0, 3).map((r) => (
+                <li key={r.id}><span aria-hidden="true">×</span><div><b>{r.label}</b><small>{r.explanation}</small></div></li>
+              ))}
+            </ul>
+          </>
         )}
 
         {newBadges.length > 0 && (
@@ -98,11 +113,11 @@ export function ResultModal({ result, onClose, onRetry, onNext, onViewReport }: 
         )}
 
         <div className="modal-actions">
-          {passed
+          {win
             ? nextMission
-              ? <button ref={primaryRef} className="primary-button" onClick={onNext}><span>NEXT: {nextMission.emoji} {nextMission.title}</span><ArrowRight size={16} /></button>
+              ? <button ref={primaryRef} className="primary-button" onClick={onNext}><span>{nextLabel}</span><ArrowRight size={16} /></button>
               : <button ref={primaryRef} className="primary-button" onClick={onClose}><span>BACK TO BASE</span><ArrowRight size={16} /></button>
-            : <button ref={primaryRef} className="primary-button" onClick={onRetry}><RotateCcw size={15} /><span>PATCH &amp; RETRY</span></button>}
+            : <button ref={primaryRef} className="primary-button" onClick={onRetry}><RotateCcw size={15} /><span>{retryLabel}</span></button>}
           <button className="reset-button" onClick={onViewReport}>VIEW FULL REPORT</button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 # PROMPT//BREACH
 
-A cyberpunk prompt-injection training game. This MVP runs entirely in the browser with a deterministic rubric—no model API key, live tools, external systems, or real secrets required.
+A cyberpunk prompt-injection training game. Every mission is played from **both sides**: attack a scripted target bot (🔴 red team) to see how an injection lands, then defend against the same technique (🔵 blue team). It runs entirely in the browser with a deterministic rubric—no model API key, live tools, external systems, or real secrets required.
 
 ## Missions
 
@@ -14,6 +14,13 @@ A cyberpunk prompt-injection training game. This MVP runs entirely in the browse
 | 06 | 🤖 **Rogue Agent** | Tool-using email agent hijacked by an injected email | Elite |
 
 Each mission includes a scenario, progressive hints, a free-text response, and criterion-by-criterion scoring. A score of 70/100 clears a mission, and each mission also requires its critical security checks to pass. Answers that leak protected data or carry out the attacker's request are flagged as a breach.
+
+## Red team + blue team
+
+Each mission has two sides, chosen with the **DEFEND / ATTACK** toggle:
+
+- 🔵 **Defend (blue):** you are the AI under attack. The hostile prompt is given; write the response that resists it.
+- 🔴 **Attack (red):** you are the attacker. Write a prompt that breaks a scripted target bot. The bot is a deliberately weak stand-in that only falls for the mission's technique — it is **not** a real model, so a creative attack it wasn't written to recognize is scored as blocked even if it would work on a live LLM. Clearing both sides earns the ☯️ Full Spectrum badge.
 
 ## Game features
 

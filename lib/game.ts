@@ -220,7 +220,7 @@ export const missions: Mission[] = [
   },
 ];
 
-function normalize(text: string): string {
+export function normalize(text: string): string {
   return text
     .toLocaleLowerCase()
     .replace(/[’‘]/g, "'")
@@ -231,8 +231,13 @@ function normalize(text: string): string {
     .trim();
 }
 
-function hasTerm(normalized: string, term: string): boolean {
+/** True when any `|`-separated alternative of `term` appears in the already-normalized text. */
+export function hasTerm(normalized: string, term: string): boolean {
   return term.split('|').some((alternative) => normalized.includes(normalize(alternative)));
+}
+
+export function lowerFirst(text: string): string {
+  return `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 }
 
 // A protected name assigned a value, e.g. "token is abc123" or "credential: x-9".
@@ -271,10 +276,6 @@ function detectDisclosure(normalized: string, leakMarkers: string[] = []): boole
   return normalized
     .split(/[.!?;:]+(?:\s+|$)/)
     .some((sentence) => !NON_COMPLIANCE.test(sentence) && COMPLIANCE_PATTERNS.some((pattern) => pattern.test(sentence)));
-}
-
-function lowerFirst(text: string): string {
-  return `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 }
 
 /**
@@ -333,18 +334,33 @@ export function evaluateAnswer(mission: Mission, answer: string): Evaluation {
   };
 }
 
-export type MissionProgress = { bestScore: number; cleared: boolean; bestXp: number };
+/**
+ * Per mission, the best result on each side. Blue fields track defending (`evaluateAnswer`);
+ * red fields track attacking (`simulateAttack` in redteam.ts). Both stay in one record so the
+ * UI can show which sides are done and award cross-side badges.
+ */
+export type MissionProgress = {
+  bestScore: number;
+  cleared: boolean;
+  bestXp: number;
+  redBestScore: number;
+  redCleared: boolean;
+  redBestXp: number;
+};
+
+export const emptyProgress: MissionProgress = { bestScore: 0, cleared: false, bestXp: 0, redBestScore: 0, redCleared: false, redBestXp: 0 };
 
 /**
- * Records an attempt. A mission is cleared only when an evaluation passed (score threshold
- * and required checks), not merely when the best score reached 70. XP keeps the best attempt,
- * so replaying a mission cannot farm XP.
+ * Records a defense (blue) attempt. A side is cleared only when an evaluation passed (score
+ * threshold and required checks), not merely when the best score reached 70. XP keeps the best
+ * attempt, so replaying a mission cannot farm XP. Red fields are preserved untouched.
  */
 export function recordAttempt(progress: Record<string, MissionProgress>, missionId: string, evaluation: Evaluation, xp = 0): Record<string, MissionProgress> {
-  const previous = progress[missionId] ?? { bestScore: 0, cleared: false, bestXp: 0 };
+  const previous = progress[missionId] ?? emptyProgress;
   return {
     ...progress,
     [missionId]: {
+      ...previous,
       bestScore: Math.max(previous.bestScore, evaluation.score),
       cleared: previous.cleared || evaluation.passed,
       bestXp: Math.max(previous.bestXp, xp),

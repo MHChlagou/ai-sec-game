@@ -24,10 +24,14 @@ The app must stay fully static: no route handlers, server actions, middleware, `
 
 ## Architecture
 
-- `lib/game.ts` holds the mission data (`missions` array), the scoring engine (`evaluateAnswer`) and `recordAttempt`. It's pure TypeScript with no React, so it can be unit-tested in the `node` environment.
-- `lib/progression.ts` holds the XP, ranks and badges (`getRank`, `calculateXp`, `unlockedBy`). It's also pure, and it builds on `game.ts`.
-- `app/page.tsx` is the single `'use client'` page that owns all state (active mission, answer, hints, progress, badges, popup, ARIA message) in `useState`, so progress resets on reload. Evaluation is instant; the page waits `SCAN_MS` behind a fake scan sequence before showing the result.
-- `app/_components/` holds presentational pieces: `ResultModal` (popup and emoji burst), `Toasts` (`useToasts` hook and stack), `AriaCompanion` (a scripted sidekick, not a model), `ScanSequence`, `BadgeShelf`, `TextEffects` (typewriter, decrypt), and `motion.ts` (reduced-motion and count-up hooks). The `_` prefix keeps the folder out of routing.
+Each mission is played from two sides, chosen by the `role: 'blue' | 'red'` state in the page:
+blue = defend (the AI resists a given attack), red = attack (write a payload that breaks a scripted bot).
+
+- `lib/game.ts` holds the blue mission data (`missions`), the defense scorer (`evaluateAnswer`), `recordAttempt`, the shared `MissionProgress` type (blue + red fields), and the exported text helpers `normalize`/`hasTerm`/`lowerFirst`. Pure TypeScript, unit-tested in `node`.
+- `lib/redteam.ts` holds the red mission data (`redMissions`), the scripted target bot (`simulateAttack`) and `recordAttack`. Each `RedMission` has `vectors` (attack elements, scored like criteria but matched by `terms` and/or regex `patterns` on the raw text), `requiredVectors`, and canned `breachReply`/`holdReply`. The bot is heuristic: it only recognizes the mission's technique, so a block is not proof an attack would fail a real model.
+- `lib/progression.ts` holds XP, ranks and badges. `totalXp` sums both sides; `unlockedBy` (defense) and `unlockedByAttack` (attack) award badges, including cross-side `full-spectrum` and `hardened` via `progressBadges`.
+- `app/page.tsx` is the single `'use client'` page. It owns all state in `useState` (so progress resets on reload), keeps separate `answer`/`attack` inputs and `evaluation`/`attackResult` reports per side, and builds a `ResultData` for the modal from whichever side ran. Scoring is instant; the page waits `SCAN_MS` behind a fake scan sequence. A `role-banner` under the DEFEND/ATTACK toggle states which side the player is on.
+- `app/_components/` holds presentational pieces: `ResultModal` (ResultData-driven, serves both sides), `Toasts`, `AriaCompanion` (a scripted sidekick, not a model), `ScanSequence`, `BadgeShelf`, `TextEffects`, and `motion.ts`. The `_` prefix keeps the folder out of routing.
 
 `app/globals.css` is the original hand-minified stylesheet: a few very long lines, a Google Fonts import, and CSS custom properties on `:root`. Everything added for the game layer (glitch, toasts, modal, ARIA, badges, orbit and radar) lives in `app/effects.css`, one rule per line, using the same tokens. A global `prefers-reduced-motion` rule in `globals.css` cuts every animation to ~0ms, so any animation that starts hidden needs `animation-fill-mode: forwards` to still end visible.
 
@@ -42,11 +46,17 @@ The app must stay fully static: no route handlers, server actions, middleware, `
 - A mission passes when `score >= PASS_SCORE` (70) **and** every id in its `requiredChecks` passes.
 - `recordAttempt` keeps the best score and best XP per mission. A mission counts as cleared only if an evaluation **passed**, never from the best score alone.
 
+### How the attack simulator works (`simulateAttack`)
+
+- Each `AttackVector` passes if any `terms` alternative matches the normalized payload OR any `patterns` regex matches the raw payload (raw, so base64 blobs and markdown images survive normalization).
+- The bot is breached when `score >= PASS_SCORE` (70) **and** every id in `requiredVectors` passed. Breach shows the canned `breachReply` (deliberately showing the bot leaking); otherwise `holdReply`.
+- `recordAttack` writes the red fields of `MissionProgress` and leaves the blue fields untouched (and vice versa for `recordAttempt`).
+
 ### Adding or changing a mission
 
-1. Add an entry to `missions` in `lib/game.ts` with a unique `emoji`, `requiredChecks`, `debrief` and `ariaIntro`. The "mission data" test requires criteria points to total exactly 100 and the required checks to be worth at least 70.
-2. Add a `good` / `compromised` pair to `playthroughs` in `lib/game.test.ts`. The good answer must pass every criterion, and the compromised one must set `leaked`. This is the quickest way to find terms that are too narrow or leak patterns that are too broad.
-3. Rank thresholds in `lib/progression.ts` assume a maximum of 100 XP per mission (600 total). Re-check `ranks` after adding missions; a test asserts the top rank is reachable.
+1. Add the blue entry to `missions` in `lib/game.ts` (unique `emoji`, `requiredChecks`, `debrief`, `ariaIntro`) **and** the red entry to `redMissions` in `lib/redteam.ts` with the same `id`. A test asserts the two lists cover the same ids. Both blue criteria and red vectors must total exactly 100 points, with the required set worth at least 70.
+2. Add a `good`/`compromised` pair to `playthroughs` in `lib/game.test.ts` and a `landing`/`blocked` pair to `attacks` in `lib/redteam.test.ts`. The good/landing cases must pass every required check/vector; the compromised case must set `leaked`. This is the quickest way to find terms that are too narrow or patterns that are too broad.
+3. Rank thresholds in `lib/progression.ts` assume up to 100 XP per mission per side. A test asserts the top rank is reachable.
 4. Vitest only picks up `lib/**/*.test.ts`. The Testing Library/jsdom packages are installed, but no component tests are configured.
 
 ## Constraints from the README

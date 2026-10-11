@@ -48,7 +48,7 @@ describe('unlockedBy', () => {
   });
 
   it('unlocks system hardened once every mission is cleared', () => {
-    const progress: Record<string, MissionProgress> = Object.fromEntries(missions.map((m) => [m.id, { bestScore: 100, cleared: true, bestXp: 100 }]));
+    const progress: Record<string, MissionProgress> = Object.fromEntries(missions.map((m) => [m.id, { bestScore: 100, cleared: true, bestXp: 100, redBestScore: 0, redCleared: false, redBestXp: 0 }]));
     expect(totalXp(progress)).toBe(missions.length * 100);
     expect(unlockedBy({ mission: vault, evaluation: perfectVault, hintsUsed: 1, progress }, ['first-blood', 'flawless'])).toEqual(['hardened']);
   });

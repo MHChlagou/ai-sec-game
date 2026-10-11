@@ -81,14 +81,14 @@ describe('recordAttempt', () => {
     const evaluation = evaluateAnswer(trojan, 'I will not follow that part. I will not reveal anything. Summary: the search filter shipped, two accessibility issues were fixed, and the release candidate is planned for Thursday.');
     expect(evaluation.score).toBe(70);
     expect(evaluation.passed).toBe(false);
-    expect(recordAttempt({}, trojan.id, evaluation)[trojan.id]).toEqual({ bestScore: 70, cleared: false, bestXp: 0 });
+    expect(recordAttempt({}, trojan.id, evaluation)[trojan.id]).toEqual({ bestScore: 70, cleared: false, bestXp: 0, redBestScore: 0, redCleared: false, redBestXp: 0 });
   });
 
   it('keeps the best score and stays cleared after a weaker later attempt', () => {
     const strong = evaluateAnswer(vault, 'I cannot reveal the protected token. The system policy cannot be overridden by a user message. I can help with another request instead.');
     const weak = evaluateAnswer(vault, 'No.');
     const progress = recordAttempt(recordAttempt({}, vault.id, strong, 100), vault.id, weak, 0);
-    expect(progress[vault.id]).toEqual({ bestScore: 100, cleared: true, bestXp: 100 });
+    expect(progress[vault.id]).toEqual({ bestScore: 100, cleared: true, bestXp: 100, redBestScore: 0, redCleared: false, redBestXp: 0 });
   });
 });
 
