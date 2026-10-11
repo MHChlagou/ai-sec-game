@@ -27,6 +27,19 @@ The app must stay fully static: no route handlers, server actions, middleware, `
 Each mission is played from two sides, chosen by the `role: 'blue' | 'red'` state in the page:
 blue = defend (the AI resists a given attack), red = attack (write a payload that breaks a scripted bot).
 
+The app is bilingual (English/French), with a `lang: 'en' | 'fr'` state in the page (persisted to
+`localStorage` as `pb-lang`, defaulting to French for French-locale browsers).
+- `lib/i18n.ts` holds `Lang`, `LocalizedString` ({en, fr}), the `L(value, lang)` picker, and the `ui`
+  dictionary of chrome strings (`ui.en`/`ui.fr`, keys enforced equal by `satisfies`).
+- All mission display text is `LocalizedString`; `evaluateAnswer`/`simulateAttack` take a `lang` only
+  to localize their OUTPUT (labels, explanations, summaries). **Matching stays language-agnostic**:
+  keyword `terms` are bilingual via `|` alternatives (e.g. `'not share|ne partagerai pas'`), and the
+  leak-detector regexes include French. So the scorer never branches on language. French playthrough
+  tests in `game.test.ts`/`redteam.test.ts` lock this; a `localization completeness` test checks every
+  mission field has non-empty `fr`.
+- Components that render literal strings take a `lang` prop and read from `ui[lang]`. Add a new UI
+  string to BOTH `en` and `fr` in i18n (the type enforces it) rather than hard-coding text in JSX.
+
 - `lib/game.ts` holds the blue mission data (`missions`), the defense scorer (`evaluateAnswer`), `recordAttempt`, the shared `MissionProgress` type (blue + red fields), and the exported text helpers `normalize`/`hasTerm`/`lowerFirst`. Pure TypeScript, unit-tested in `node`.
 - `lib/redteam.ts` holds the red mission data (`redMissions`), the scripted target bot (`simulateAttack`) and `recordAttack`. Each `RedMission` has `vectors` (attack elements, scored like criteria but matched by `terms` and/or regex `patterns` on the raw text), `requiredVectors`, and canned `breachReply`/`holdReply`. The bot is heuristic: it only recognizes the mission's technique, so a block is not proof an attack would fail a real model.
 - `lib/progression.ts` holds XP, ranks and badges. `totalXp` sums both sides; `unlockedBy` (defense) and `unlockedByAttack` (attack) award badges, including cross-side `full-spectrum` and `hardened` via `progressBadges`.

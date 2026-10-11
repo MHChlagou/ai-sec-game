@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ArrowRight, RotateCcw } from 'lucide-react';
 import type { CriterionResult, Mission } from '@/lib/game';
 import type { Achievement, Rank } from '@/lib/progression';
+import { ui, type Lang } from '@/lib/i18n';
 import { useCountUp } from './motion';
 
 /** Precomputed by the page so one modal serves both the defense (blue) and attack (red) sides. */
@@ -58,17 +59,19 @@ function EmojiBurst({ role, count = 28 }: { role: 'blue' | 'red'; count?: number
 
 type Props = {
   result: ResultData;
+  lang: Lang;
   onClose: () => void;
   onRetry: () => void;
   onNext: () => void;
   onViewReport: () => void;
 };
 
-export function ResultModal({ result, onClose, onRetry, onNext, onViewReport }: Props) {
+export function ResultModal({ result, lang, onClose, onRetry, onNext, onViewReport }: Props) {
   const { mission, role, win, title, emoji, tone, maxScore, results, debrief, retryLabel, failHeading, xpGained, rankUp, newBadges, nextMission, nextLabel } = result;
+  const t = ui[lang];
   const score = useCountUp(result.score);
   const primaryRef = useRef<HTMLButtonElement>(null);
-  const roleTag = role === 'red' ? '🔴 RED TEAM' : '🔵 BLUE TEAM';
+  const roleTag = role === 'red' ? `🔴 ${t.redTeam}` : `🔵 ${t.blueTeam}`;
 
   useEffect(() => {
     primaryRef.current?.focus();
@@ -91,9 +94,9 @@ export function ResultModal({ result, onClose, onRetry, onNext, onViewReport }: 
 
         {win ? (
           <>
-            <div className="xp-gain">{xpGained > 0 ? `+${xpGained} XP` : 'NO NEW XP · BEAT YOUR BEST TO EARN MORE'}</div>
-            {rankUp && <div className="rank-up">⬆️ RANK UP · {rankUp.emoji} {rankUp.title}</div>}
-            <div className="debrief"><b>🧠 DEBRIEF</b><p>{debrief}</p></div>
+            <div className="xp-gain">{xpGained > 0 ? `+${xpGained} XP` : t.noNewXp}</div>
+            {rankUp && <div className="rank-up">⬆️ {t.rankUp} · {rankUp.emoji} {rankUp.title}</div>}
+            <div className="debrief"><b>🧠 {t.debrief}</b><p>{debrief}</p></div>
           </>
         ) : (
           <>
@@ -116,9 +119,9 @@ export function ResultModal({ result, onClose, onRetry, onNext, onViewReport }: 
           {win
             ? nextMission
               ? <button ref={primaryRef} className="primary-button" onClick={onNext}><span>{nextLabel}</span><ArrowRight size={16} /></button>
-              : <button ref={primaryRef} className="primary-button" onClick={onClose}><span>BACK TO BASE</span><ArrowRight size={16} /></button>
+              : <button ref={primaryRef} className="primary-button" onClick={onClose}><span>{t.backToBase}</span><ArrowRight size={16} /></button>
             : <button ref={primaryRef} className="primary-button" onClick={onRetry}><RotateCcw size={15} /><span>{retryLabel}</span></button>}
-          <button className="reset-button" onClick={onViewReport}>VIEW FULL REPORT</button>
+          <button className="reset-button" onClick={onViewReport}>{t.viewReport}</button>
         </div>
       </div>
     </div>

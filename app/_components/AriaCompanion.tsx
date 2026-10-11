@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ui, type Lang } from '@/lib/i18n';
 import { TypewriterText } from './TextEffects';
 
 export type AriaMood = 'idle' | 'happy' | 'alert' | 'thinking';
@@ -12,7 +13,7 @@ const FACES: Record<AriaMood, string> = { idle: '🤖', happy: '😎', alert: '�
  * ARIA, the scripted sidekick. Not a model: every line is canned and chosen from the evaluation,
  * which keeps the README's "no API key, deterministic" promise.
  */
-export function AriaCompanion({ message }: { message: AriaMessage }) {
+export function AriaCompanion({ message, lang }: { message: AriaMessage; lang: Lang }) {
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function AriaCompanion({ message }: { message: AriaMessage }) {
     <div className={`aria ${message.mood}`}>
       {open && (
         <div className="aria-bubble" role="status" aria-live="polite" key={message.id}>
-          <div className="aria-name">ARIA <span>// DEFENSE AI</span></div>
+          <div className="aria-name">ARIA <span>// {ui[lang].ariaName}</span></div>
           <p>
             {message.mood === 'thinking'
               ? <><span className="typing-dots" aria-hidden="true"><i /><i /><i /></span><span className="sr-only">{message.text}</span></>

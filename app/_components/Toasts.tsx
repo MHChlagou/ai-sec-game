@@ -23,11 +23,11 @@ export function useToasts(lifetime = 4500) {
   return { toasts, push, dismiss };
 }
 
-export function ToastStack({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: number) => void }) {
+export function ToastStack({ toasts, onDismiss, dismissLabel = 'Dismiss' }: { toasts: Toast[]; onDismiss: (id: number) => void; dismissLabel?: string }) {
   return (
     <div className="toast-stack" aria-live="polite">
       {toasts.map((toast) => (
-        <button key={toast.id} className={`toast ${toast.tone ?? 'info'}`} onClick={() => onDismiss(toast.id)} aria-label={`${toast.title}. Dismiss`}>
+        <button key={toast.id} className={`toast ${toast.tone ?? 'info'}`} onClick={() => onDismiss(toast.id)} aria-label={`${toast.title}. ${dismissLabel}`}>
           <span className="toast-emoji" aria-hidden="true">{toast.emoji}</span>
           <span className="toast-copy"><b>{toast.title}</b>{toast.body && <small>{toast.body}</small>}</span>
           <span className="toast-timer" aria-hidden="true" />

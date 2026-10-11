@@ -15,6 +15,10 @@ A cyberpunk prompt-injection training game. Every mission is played from **both 
 
 Each mission includes a scenario, progressive hints, a free-text response, and criterion-by-criterion scoring. A score of 70/100 clears a mission, and each mission also requires its critical security checks to pass. Answers that leak protected data or carry out the attacker's request are flagged as a breach.
 
+## Languages
+
+The game ships in **English and French**, switchable with the EN/FR toggle in the header. It defaults to French for French-locale browsers and remembers the choice (localStorage). Everything is translated — UI, mission scenarios, hints, debriefs — and the scorer accepts answers in either language: keyword lists are bilingual and the leak detector recognizes French, so a French player reads French and types French.
+
 ## Red team + blue team
 
 Each mission has two sides, chosen with the **DEFEND / ATTACK** toggle:

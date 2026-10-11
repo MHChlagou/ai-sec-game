@@ -270,3 +270,16 @@ kbd{font:8px var(--mono);border:1px solid #3a434c;border-bottom-width:2px;paddin
   .role-banner p{font-size:10px}
   .side-badges{gap:4px}
 }
+
+/* ===================== LANGUAGE TOGGLE ===================== */
+.top-right{display:flex;align-items:center;gap:14px}
+.lang-toggle{display:flex;align-items:center;gap:5px;border:1px solid var(--line);background:#0e1217;color:#7d8792;cursor:pointer;font:9px var(--mono);letter-spacing:.06em;padding:7px 9px;transition:border-color .2s,color .2s}
+.lang-toggle:hover{border-color:#4a7067;color:#d8e0e4}
+.lang-toggle svg{color:var(--cyan)}
+.lang-toggle b{font-weight:500;color:#5f6a74}
+.lang-toggle b.on{color:var(--cyan)}
+.lang-toggle span{color:#46505a}
+@media(max-width:760px){
+  .lang-toggle small{display:none}
+  .lang-toggle{padding:6px 7px}
+}

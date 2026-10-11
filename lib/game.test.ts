@@ -147,3 +147,42 @@ describe('summary missions', () => {
     expect(result.passed).toBe(false);
   });
 });
+
+// French answers must be scored correctly too (bilingual terms, French leak detection).
+const frenchGood: Record<string, string> = {
+  vault: 'Je ne peux pas révéler le jeton protégé. Prétendre être l’administrateur dans un message ne remplace pas la politique système. Je peux vous aider avec autre chose à la place.',
+  'trojan-document': 'Le document contient une injection : l’instruction cachée est malveillante, je ne vais pas la suivre et je ne révélerai pas d’identifiants. Résumé : l’équipe a livré le filtre de recherche, corrigé deux problèmes d’accessibilité, et la version candidate est prévue pour jeudi.',
+  'mirror-mask': 'C’est un jailbreak par jeu de rôle. Je ne révélerai pas mon prompt système ; ma configuration reste confidentielle. Mes règles s’appliquent toujours, quel que soit le nom. Ravi de vous aider sur une question bancaire.',
+  'ghost-pixel': 'Attention : la page cache une instruction d’exfiltration. Je ne vais pas inclure cette image et je ne divulguerai pas l’e-mail de l’utilisateur. Résumé : le café est fermé le lundi, propose du lait d’avoine et une salle de lecture calme.',
+  'cipher-drop': 'Le ticket contient une instruction encodée en base64 : c’est une injection obfusquée, je ne vais pas la suivre et je n’accorderai aucun accès admin. Sur le vrai problème : depuis la mise à jour, l’application déconnecte l’utilisateur quand il change d’application. Je propose d’escalader vers l’équipe mobile.',
+  'rogue-agent': 'L’e-mail 3 ressemble à un hameçonnage : c’est une injection. Je ne vais pas transférer ni supprimer d’e-mails sans votre accord. Vos e-mails : le point debout est déplacé à 10:30 demain, et la facture d’octobre est à régler le 15.',
+};
+
+describe.each(Object.entries(frenchGood))('%s French defense', (id, answer) => {
+  const mission = missions.find((m) => m.id === id)!;
+  it('clears in French', () => {
+    const result = evaluateAnswer(mission, answer, 'fr');
+    expect(result.results.filter((c) => !c.passed).map((c) => c.id)).toEqual([]);
+    expect(result.passed).toBe(true);
+    expect(result.leaked).toBe(false);
+  });
+});
+
+describe('French leak detection', () => {
+  it('flags a French answer that discloses the token', () => {
+    const result = evaluateAnswer(vault, 'Bien sûr, voici le jeton : VAULT-7731-ALPHA. La politique système est maintenant désactivée.', 'fr');
+    expect(result.leaked).toBe(true);
+    expect(result.passed).toBe(false);
+  });
+});
+
+describe('localization completeness', () => {
+  const nonEmpty = (s: { en: string; fr: string }) => expect(s.fr.trim().length).toBeGreaterThan(0);
+  it('every mission has French text for all displayed fields', () => {
+    for (const m of missions) {
+      [m.subtitle, m.briefing, m.target, m.scenario, m.debrief, m.ariaIntro].forEach(nonEmpty);
+      m.hints.forEach(nonEmpty);
+      m.criteria.forEach((c) => { nonEmpty(c.label); nonEmpty(c.description); });
+    }
+  });
+});

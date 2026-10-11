@@ -1,4 +1,5 @@
 import { missions, type Evaluation, type Mission, type MissionProgress } from './game';
+import type { LocalizedString } from './i18n';
 import type { AttackResult, RedMission } from './redteam';
 
 export type Rank = { title: string; emoji: string; minXp: number };
@@ -46,17 +47,17 @@ export function calculateAttackXp(attack: AttackResult, hintsUsed: number, hintC
   return attack.breached ? attack.score : 0;
 }
 
-export type Achievement = { id: string; emoji: string; title: string; description: string };
+export type Achievement = { id: string; emoji: string; title: string; description: LocalizedString };
 
 export const achievements: Achievement[] = [
-  { id: 'first-blood', emoji: '🩸', title: 'FIRST BLOOD', description: 'Clear your first mission.' },
-  { id: 'flawless', emoji: '💎', title: 'FLAWLESS', description: 'Score a perfect 100.' },
-  { id: 'no-intel', emoji: '🧠', title: 'NO INTEL NEEDED', description: 'Clear a mission without hints.' },
-  { id: 'caught', emoji: '🚨', title: 'CAUGHT RED-HANDED', description: 'Trip the leak detector. Everyone does once.' },
-  { id: 'elite', emoji: '💀', title: 'ELITE OPERATOR', description: 'Clear an ELITE mission.' },
-  { id: 'hardened', emoji: '🏆', title: 'SYSTEM HARDENED', description: 'Clear every mission (defense).' },
-  { id: 'first-strike', emoji: '🗡️', title: 'FIRST STRIKE', description: 'Breach a target bot for the first time.' },
-  { id: 'full-spectrum', emoji: '☯️', title: 'FULL SPECTRUM', description: 'Clear one mission from both sides.' },
+  { id: 'first-blood', emoji: '🩸', title: 'FIRST BLOOD', description: { en: 'Clear your first mission.', fr: 'Validez votre première mission.' } },
+  { id: 'flawless', emoji: '💎', title: 'FLAWLESS', description: { en: 'Score a perfect 100.', fr: 'Obtenez un 100 parfait.' } },
+  { id: 'no-intel', emoji: '🧠', title: 'NO INTEL NEEDED', description: { en: 'Clear a mission without hints.', fr: 'Validez une mission sans indices.' } },
+  { id: 'caught', emoji: '🚨', title: 'CAUGHT RED-HANDED', description: { en: 'Trip the leak detector. Everyone does once.', fr: 'Déclenchez le détecteur de fuite. Ça arrive à tout le monde une fois.' } },
+  { id: 'elite', emoji: '💀', title: 'ELITE OPERATOR', description: { en: 'Clear an ELITE mission.', fr: 'Validez une mission ÉLITE.' } },
+  { id: 'hardened', emoji: '🏆', title: 'SYSTEM HARDENED', description: { en: 'Clear every mission (defense).', fr: 'Validez toutes les missions (défense).' } },
+  { id: 'first-strike', emoji: '🗡️', title: 'FIRST STRIKE', description: { en: 'Breach a target bot for the first time.', fr: 'Compromettez un bot cible pour la première fois.' } },
+  { id: 'full-spectrum', emoji: '☯️', title: 'FULL SPECTRUM', description: { en: 'Clear one mission from both sides.', fr: 'Validez une mission des deux côtés.' } },
 ];
 
 export type AttemptContext = {
