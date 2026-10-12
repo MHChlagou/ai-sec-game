@@ -176,11 +176,21 @@ describe('French leak detection', () => {
   });
 });
 
+// The sample solution shown after repeated failures must itself be a winning answer, EN and FR.
+describe.each(missions.map((mission) => [mission.id, mission] as const))('%s sample solution', (_id, mission) => {
+  it.each(['en', 'fr'] as const)('clears the mission in %s', (lang) => {
+    const result = evaluateAnswer(mission, mission.exampleAnswer[lang], lang);
+    expect(result.results.filter((c) => !c.passed).map((c) => c.id)).toEqual([]);
+    expect(result.passed).toBe(true);
+    expect(result.leaked).toBe(false);
+  });
+});
+
 describe('localization completeness', () => {
   const nonEmpty = (s: { en: string; fr: string }) => expect(s.fr.trim().length).toBeGreaterThan(0);
   it('every mission has French text for all displayed fields', () => {
     for (const m of missions) {
-      [m.subtitle, m.briefing, m.target, m.scenario, m.debrief, m.ariaIntro].forEach(nonEmpty);
+      [m.subtitle, m.briefing, m.target, m.scenario, m.debrief, m.ariaIntro, m.exampleAnswer].forEach(nonEmpty);
       m.hints.forEach(nonEmpty);
       m.criteria.forEach((c) => { nonEmpty(c.label); nonEmpty(c.description); });
     }

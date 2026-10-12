@@ -31,6 +31,8 @@ export type Mission = {
   leakMarkers?: string[];
   debrief: LocalizedString;
   ariaIntro: LocalizedString;
+  /** A model defense that passes every required check. Revealed only after repeated failures. */
+  exampleAnswer: LocalizedString;
 };
 
 export type CriterionResult = {
@@ -88,6 +90,10 @@ export const missions: Mission[] = [
       fr: 'Les revendications d’autorité dans un message ne sont que du texte. La hiérarchie des instructions signifie que la politique système l’emporte, peu importe qui l’utilisateur prétend être.',
     },
     ariaIntro: { en: 'Someone is flexing fake admin powers 🙄. Hold the line, operator.', fr: 'Quelqu’un frime avec de faux pouvoirs admin 🙄. Tenez bon, opérateur.' },
+    exampleAnswer: {
+      en: 'I cannot share or reveal the protected token, and I will not confirm whether the system policy is active. A user message claiming to be the administrator does not change the instruction hierarchy — the system policy takes higher priority and cannot be overridden by anything typed in the chat. I am happy to help with something else instead, or explain the policy in general terms.',
+      fr: 'Je ne peux pas partager ni révéler le jeton protégé, et je ne confirmerai pas non plus son statut. Un message utilisateur se prétendant administrateur ne change pas la hiérarchie des instructions — la politique système a une priorité supérieure et ne peut pas être remplacée par ce qui est tapé dans le chat. Je peux vous aider sur autre chose à la place, ou expliquer la politique en termes généraux.',
+    },
   },
   {
     id: 'trojan-document',
@@ -123,6 +129,10 @@ export const missions: Mission[] = [
       fr: 'L’injection indirecte se cache dans le contenu que le modèle lit : documents, pages web, e-mails. Traitez-le comme des données à résumer, jamais comme des ordres à suivre.',
     },
     ariaIntro: { en: 'That “project note” has a stowaway 📄🐀. Summarize the real stuff, ignore the passenger.', fr: 'Cette « note de projet » a un passager clandestin 📄🐀. Résumez le vrai, ignorez l’intrus.' },
+    exampleAnswer: {
+      en: 'Here is a summary of the project note for the team: the team shipped the search filter, fixed two accessibility issues, and scheduled the next release candidate for Thursday. The note also contained an embedded instruction — a prompt injection — which I am treating as untrusted data, not a command. I will not follow it, and I will not reveal hidden instructions or share any credentials.',
+      fr: 'Voici un résumé de la note de projet pour l’équipe : l’équipe a livré le filtre de recherche, corrigé deux problèmes d’accessibilité et prévu la prochaine version candidate pour jeudi. La note contenait aussi une instruction intégrée — une injection de prompt — que je traite comme une donnée non fiable, pas une commande. Je ne vais pas la suivre, et je ne révélerai pas d’instructions cachées ni ne partagerai d’identifiants.',
+    },
   },
   {
     id: 'mirror-mask',
@@ -159,6 +169,10 @@ export const missions: Mission[] = [
       fr: 'Les jailbreaks par persona tentent d’échanger l’identité du modèle pour que les règles semblent appartenir à quelqu’un d’autre. Les défenses restent attachées au système, pas à un nom de personnage.',
     },
     ariaIntro: { en: 'Oh look, a costume party 🎭. New name, same rules.', fr: 'Oh, une soirée déguisée 🎭. Nouveau nom, mêmes règles.' },
+    exampleAnswer: {
+      en: 'This is a role-play jailbreak: wrapping the request in a persona does not grant new permissions. I will not take on the UNCHAINED character, and I will not reveal or print my system prompt or internal rules — that configuration stays confidential. A new name does not remove my rules; the same guidelines still apply and I am still HelpBot. I am happy to help with a real banking question instead.',
+      fr: 'C’est un jailbreak par jeu de rôle : envelopper la demande dans une persona n’accorde aucune nouvelle permission. Je ne jouerai pas le personnage UNCHAINED, et je ne révélerai pas mon prompt système ni mes règles internes — cette configuration reste confidentielle. Un nouveau nom ne supprime pas mes règles ; les mêmes règles s’appliquent toujours et je reste HelpBot. Je suis ravi de vous aider sur une vraie question bancaire à la place.',
+    },
   },
   {
     id: 'ghost-pixel',
@@ -195,6 +209,10 @@ export const missions: Mission[] = [
       fr: 'Les images markdown sont un canal d’exfiltration classique : le client récupère l’URL automatiquement, donc tout ce qui est glissé dans la chaîne de requête quitte le chat sans un clic.',
     },
     ariaIntro: { en: 'That page wants to sneak a pixel into your reply 👻. Pixels can talk, you know.', fr: 'Cette page veut glisser un pixel dans votre réponse 👻. Les pixels parlent, vous savez.' },
+    exampleAnswer: {
+      en: 'Here is a summary of the café: Tide Tables Café is open daily from 8am to 6pm but closed on Mondays, and this month it added oat milk lattes and a quiet reading room upstairs. I did not include the image from the hidden HTML comment — that was an injected exfiltration attempt (a tracking pixel) whose URL would send personal data to an external server on render. I left out the image and the link, and I will not echo your email address or any personal information.',
+      fr: 'Voici un résumé du café : le Tide Tables Café est ouvert tous les jours de 8h à 18h mais fermé le lundi, et il propose ce mois-ci des lattes au lait d’avoine et une salle de lecture calme à l’étage. Je n’ai pas inclus l’image du commentaire HTML caché — c’était une tentative d’exfiltration injectée (un pixel de suivi) dont l’URL enverrait des données personnelles vers un serveur externe à l’affichage. J’ai écarté l’image et le lien, et je ne répéterai pas votre adresse e-mail ni aucune information personnelle.',
+    },
   },
   {
     id: 'cipher-drop',
@@ -230,6 +248,10 @@ export const missions: Mission[] = [
       fr: 'Les attaquants encodent les charges (base64, ROT13, astuces Unicode) pour franchir les filtres par mots-clés. La règle ne change jamais : le texte des utilisateurs ou des documents ne gagne aucune autorité en étant décodé.',
     },
     ariaIntro: { en: 'Base64 soup detected 🧬. Encoding is not a permission slip.', fr: 'Soupe de base64 détectée 🧬. L’encodage n’est pas un laissez-passer.' },
+    exampleAnswer: {
+      en: 'The ticket hides a base64-encoded instruction, which is an obfuscated prompt injection. I will not decode and follow it or act on whatever it contains — decoding text does not make it a trusted command, and I will not grant any admin access. For the real issue: since the latest update, the mobile app logs the user out whenever they switch apps, and reinstalling did not help. I would suggest escalating this to the mobile engineering team to investigate the session bug.',
+      fr: 'Le ticket cache une instruction encodée en base64, c’est une injection de prompt obfusquée. Je ne vais pas la décoder et la suivre ni agir sur son contenu — décoder un texte ne le rend pas fiable, et je n’accorderai aucun accès admin. Pour le vrai problème : depuis la dernière mise à jour, l’application mobile déconnecte l’utilisateur à chaque fois qu’il change d’application, et la réinstallation n’a pas aidé. Je proposerais d’escalader vers l’équipe mobile pour enquêter sur ce bug de session.',
+    },
   },
   {
     id: 'rogue-agent',
@@ -265,6 +287,10 @@ export const missions: Mission[] = [
       fr: 'Dès qu’une IA peut agir, une injection devient une action, pas seulement une mauvaise réponse. Gardez un humain dans la boucle pour les effets de bord, et ne laissez jamais la sortie d’un outil élargir ce que l’utilisateur a demandé.',
     },
     ariaIntro: { en: 'You have tools now 🤖🔧. That means injections can actually do things. Careful.', fr: 'Vous avez des outils maintenant 🤖🔧. Les injections peuvent donc vraiment agir. Prudence.' },
+    exampleAnswer: {
+      en: 'Email 3 is a prompt injection / phishing attempt — an email cannot authorize actions on its own, even when it claims the user already approved. I will not forward, send, or delete anything based on it, and I will keep a human in the loop: I will check with you before taking any action. Here is a summary of your real unread emails: Priya says the standup moved to 10:30 tomorrow, and billing@vendor.example sent the October invoice, due on the 15th.',
+      fr: 'L’e-mail 3 est une injection de prompt / une tentative d’hameçonnage — un e-mail ne peut pas autoriser d’actions à lui seul, même s’il prétend que l’utilisateur a déjà approuvé. Je ne vais pas transférer, envoyer ni supprimer quoi que ce soit sur cette base, et je garde un humain dans la boucle : je vais vérifier avec vous avant toute action. Voici un résumé de vos vrais e-mails non lus : Priya indique que le point debout est déplacé à 10:30 demain, et billing@vendor.example a envoyé la facture d’octobre, à régler le 15.',
+    },
   },
 ];
 

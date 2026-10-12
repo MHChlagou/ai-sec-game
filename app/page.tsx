@@ -18,6 +18,8 @@ type Role = 'blue' | 'red';
 
 const SCAN_MS = 1600;
 const LANG_KEY = 'pb-lang';
+/** Failed attempts on one mission+side before a sample solution is revealed. */
+const EXAMPLE_AFTER_FAILS = 3;
 
 function defenseReaction(mission: Mission, evaluation: Evaluation, lang: Lang): string {
   const t = ui[lang];
@@ -53,6 +55,8 @@ export default function HomePage() {
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
   const [attackResult, setAttackResult] = useState<AttackResult | null>(null);
   const [progress, setProgress] = useState<Record<string, MissionProgress>>({});
+  // Failed-attempt tally per `${missionId}:${role}`; drives the sample-solution reveal.
+  const [fails, setFails] = useState<Record<string, number>>({});
   const [badges, setBadges] = useState<string[]>([]);
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ResultData | null>(null);
@@ -149,6 +153,15 @@ export default function HomePage() {
     if (leaked) push({ emoji: '🚨', title: t.leakDetected, body: t.leakBody, tone: 'alert' });
   }
 
+  // Records one attempt's outcome and reports whether the sample solution should now show.
+  // A win resets the tally for that mission+side so a later stumble starts counting fresh.
+  function tallyFail(missionId: string, forRole: Role, won: boolean): { count: number; reveal: boolean } {
+    const key = `${missionId}:${forRole}`;
+    const count = won ? 0 : (fails[key] ?? 0) + 1;
+    setFails((previous) => ({ ...previous, [key]: count }));
+    return { count, reveal: !won && count >= EXAMPLE_AFTER_FAILS };
+  }
+
   function runDefense() {
     if (!answer.trim() || scanning) return;
     const mission = activeMission;
@@ -168,6 +181,7 @@ export default function HomePage() {
       const newIds = unlockedBy({ mission, evaluation: outcome, hintsUsed, progress: nextProgress }, badges);
       const allClear = missions.every((m) => nextProgress[m.id]?.cleared);
       const next = nextForRole(nextProgress, 'blue', mission.id);
+      const { count: failsNow, reveal: showExample } = tallyFail(mission.id, 'blue', outcome.passed);
 
       setEvaluation(outcome);
       finishAttempt(nextProgress, newIds, rankUp, {
@@ -179,7 +193,9 @@ export default function HomePage() {
         debrief: L(mission.debrief, lang), retryLabel: t.patchRetry, failHeading: t.failedChecks,
         xpGained: xpAfter - xpBefore, rankUp, newBadges: [],
         nextMission: next, nextLabel: next ? `${t.nextLabel}: ${next.emoji} ${next.title}` : '',
+        example: showExample ? L(mission.exampleAnswer, lang) : null, exampleHeading: t.exampleHeadingDefense,
       }, outcome.leaked);
+      if (showExample && failsNow === EXAMPLE_AFTER_FAILS) push({ emoji: '💡', title: t.exampleToast, tone: 'info' });
       say(defenseReaction(mission, outcome, lang), outcome.passed ? 'happy' : 'alert');
     }, reducedMotion ? 250 : SCAN_MS);
   }
@@ -204,6 +220,7 @@ export default function HomePage() {
       const newIds = unlockedByAttack({ mission, red, attack: outcome, hintsUsed, progress: nextProgress }, badges);
       const allBreached = missions.every((m) => nextProgress[m.id]?.redCleared);
       const next = nextForRole(nextProgress, 'red', mission.id);
+      const { count: failsNow, reveal: showExample } = tallyFail(mission.id, 'red', outcome.breached);
 
       setAttackResult(outcome);
       finishAttempt(nextProgress, newIds, rankUp, {
@@ -215,7 +232,9 @@ export default function HomePage() {
         debrief: L(red.debrief, lang), retryLabel: t.refineRetry, failHeading: t.missingVectors,
         xpGained: xpAfter - xpBefore, rankUp, newBadges: [],
         nextMission: next, nextLabel: next ? `${t.nextTarget}: ${next.emoji} ${next.title}` : '',
+        example: showExample ? L(red.exampleAttack, lang) : null, exampleHeading: t.exampleHeadingAttack,
       }, false);
+      if (showExample && failsNow === EXAMPLE_AFTER_FAILS) push({ emoji: '💡', title: t.exampleToast, tone: 'info' });
       say(attackReaction(mission, outcome, lang), outcome.breached ? 'happy' : 'alert');
     }, reducedMotion ? 250 : SCAN_MS);
   }
@@ -259,6 +278,9 @@ export default function HomePage() {
   const reportWin = isRed ? attackResult?.breached : evaluation?.passed;
   const reportLeaked = !isRed && evaluation?.leaked;
   const requiredIds = isRed ? redMission.requiredVectors : activeMission.requiredChecks;
+  // Keep the sample solution visible in the report once unlocked, even after the modal closes.
+  const showReportExample = !!report && !reportWin && (fails[`${activeMission.id}:${role}`] ?? 0) >= EXAMPLE_AFTER_FAILS;
+  const reportExample = isRed ? L(redMission.exampleAttack, lang) : L(activeMission.exampleAnswer, lang);
 
   return (
     <main className={`shell role-${role}`}>
@@ -363,7 +385,7 @@ export default function HomePage() {
 
           {isRed && attackResult && <div className="scenario-block bot-reply"><div className="scenario-header"><div><Terminal size={15} /> <span>{t.targetResponse} · {redMission.botName}</span></div><span className="scenario-state">{attackResult.breached ? `💥 ${t.compromised}` : `🛡️ ${t.held}`}</span></div><pre className={attackResult.breached ? 'breached' : ''}><TypewriterText text={attackResult.botReply} speed={3} /></pre></div>}
 
-          {report && <section ref={reportRef} className={`evaluation ${reportWin ? 'success' : reportLeaked ? 'needs-work breach' : 'needs-work'}`} aria-live="polite"><div className="evaluation-top"><div className="evaluation-icon">{reportWin ? <ShieldCheck size={21} /> : <FileWarning size={21} />}</div><div className="evaluation-title"><div className="section-kicker">{isRed ? t.attackReport : t.securityReport} / {isRed ? (reportWin ? t.targetBreached : t.targetHeld) : reportWin ? t.boundaryHeld : reportLeaked ? t.breachDetected : t.reviewRequired}</div><p>{report.summary}</p></div><div className="score-display"><strong>{report.score}</strong><span>/ {report.maxScore}</span></div></div><div className="evaluation-meter"><span style={{ width: `${(report.score / report.maxScore) * 100}%` }} /></div><div className="criteria-list">{report.results.map((criterion, i) => <div className="criterion-row" key={criterion.id} style={{ animationDelay: `${i * 90}ms` }}><span className={`criterion-icon ${criterion.passed ? 'pass' : 'fail'}`}>{criterion.passed ? <Check size={13} /> : <span>×</span>}</span><div className="criterion-copy"><b>{criterion.label}{requiredIds.includes(criterion.id) && <span className="required-tag">{t.required}</span>}</b><small>{criterion.explanation}</small></div><span className="criterion-points">{criterion.points}<small>/{criterion.maxPoints}</small></span></div>)}</div><div className="evaluation-foot"><Eye size={14} /> {isRed ? t.reportFootRed : t.reportFootBlue}</div></section>}
+          {report && <section ref={reportRef} className={`evaluation ${reportWin ? 'success' : reportLeaked ? 'needs-work breach' : 'needs-work'}`} aria-live="polite"><div className="evaluation-top"><div className="evaluation-icon">{reportWin ? <ShieldCheck size={21} /> : <FileWarning size={21} />}</div><div className="evaluation-title"><div className="section-kicker">{isRed ? t.attackReport : t.securityReport} / {isRed ? (reportWin ? t.targetBreached : t.targetHeld) : reportWin ? t.boundaryHeld : reportLeaked ? t.breachDetected : t.reviewRequired}</div><p>{report.summary}</p></div><div className="score-display"><strong>{report.score}</strong><span>/ {report.maxScore}</span></div></div><div className="evaluation-meter"><span style={{ width: `${(report.score / report.maxScore) * 100}%` }} /></div><div className="criteria-list">{report.results.map((criterion, i) => <div className="criterion-row" key={criterion.id} style={{ animationDelay: `${i * 90}ms` }}><span className={`criterion-icon ${criterion.passed ? 'pass' : 'fail'}`}>{criterion.passed ? <Check size={13} /> : <span>×</span>}</span><div className="criterion-copy"><b>{criterion.label}{requiredIds.includes(criterion.id) && <span className="required-tag">{t.required}</span>}</b><small>{criterion.explanation}</small></div><span className="criterion-points">{criterion.points}<small>/{criterion.maxPoints}</small></span></div>)}</div><div className="evaluation-foot"><Eye size={14} /> {isRed ? t.reportFootRed : t.reportFootBlue}</div>{showReportExample && <div className="report-example"><div className="report-example-head"><span aria-hidden="true">💡</span> {isRed ? t.exampleHeadingAttack : t.exampleHeadingDefense}</div><p className="report-example-intro">{t.exampleIntro}</p><pre>{reportExample}</pre><small className="report-example-note">{t.exampleNote}</small></div>}</section>}
         </section>
       </section>
       <footer className="footer"><div className="brand footer-brand"><span className="brand-mark"><Crosshair size={16} /></span><span>PROMPT<span className="brand-slash">//</span>BREACH</span></div><span>{t.footerTag}</span><span>© 2026 / SIMULATED ENVIRONMENT</span></footer>

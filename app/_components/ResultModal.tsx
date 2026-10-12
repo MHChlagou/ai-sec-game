@@ -28,6 +28,10 @@ export type ResultData = {
   nextMission: Mission | null;
   /** How the "next" button reads, e.g. "NEXT: 👻 GHOST PIXEL". */
   nextLabel: string;
+  /** A model solution, shown on the fail screen once the player has failed this side a few times. */
+  example: string | null;
+  /** Heading for the example block, worded for the active side. */
+  exampleHeading: string;
 };
 
 const BURST_BLUE = ['🛡️', '✨', '🔐', '⚡', '👾', '💾', '🧠', '🎉'];
@@ -67,7 +71,7 @@ type Props = {
 };
 
 export function ResultModal({ result, lang, onClose, onRetry, onNext, onViewReport }: Props) {
-  const { mission, role, win, title, emoji, tone, maxScore, results, debrief, retryLabel, failHeading, xpGained, rankUp, newBadges, nextMission, nextLabel } = result;
+  const { mission, role, win, title, emoji, tone, maxScore, results, debrief, retryLabel, failHeading, xpGained, rankUp, newBadges, nextMission, nextLabel, example, exampleHeading } = result;
   const t = ui[lang];
   const score = useCountUp(result.score);
   const primaryRef = useRef<HTMLButtonElement>(null);
@@ -106,6 +110,14 @@ export function ResultModal({ result, lang, onClose, onRetry, onNext, onViewRepo
                 <li key={r.id}><span aria-hidden="true">×</span><div><b>{r.label}</b><small>{r.explanation}</small></div></li>
               ))}
             </ul>
+            {example && (
+              <div className="modal-example">
+                <div className="modal-example-head"><span aria-hidden="true">💡</span> {exampleHeading}</div>
+                <p className="modal-example-intro">{t.exampleIntro}</p>
+                <pre>{example}</pre>
+                <small className="modal-example-note">{t.exampleNote}</small>
+              </div>
+            )}
           </>
         )}
 

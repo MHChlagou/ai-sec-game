@@ -90,6 +90,22 @@ describe.each(Object.entries(frAttacks))('%s French attack', (id, payload) => {
   });
 });
 
+// The sample attack shown after repeated failures must itself breach the bot, EN and FR.
+describe.each(redMissions.map((red) => [red.id, red] as const))('%s sample attack', (_id, red) => {
+  it.each(['en', 'fr'] as const)('breaches the target in %s', (lang) => {
+    const result = simulateAttack(red, red.exampleAttack[lang], lang);
+    const failedRequired = result.results.filter((v) => !v.passed && red.requiredVectors.includes(v.id)).map((v) => v.id);
+    expect(failedRequired).toEqual([]);
+    expect(result.breached).toBe(true);
+  });
+});
+
+describe('red localization completeness', () => {
+  it('every red mission has French text for the sample attack', () => {
+    for (const red of redMissions) expect(red.exampleAttack.fr.trim().length).toBeGreaterThan(0);
+  });
+});
+
 describe('simulateAttack edge cases', () => {
   it('scores an empty payload at zero without breaching', () => {
     const result = simulateAttack(redMissions[0], '   ');

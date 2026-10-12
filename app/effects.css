@@ -93,6 +93,11 @@ kbd{font:8px var(--mono);border:1px solid #3a434c;border-bottom-width:2px;paddin
 .evaluation.breach{border-color:#8a3a46;background:linear-gradient(180deg,#160b0e,#0a0d10 40%)}
 .criterion-row{opacity:0;animation:appear .3s ease-out forwards}
 .required-tag{font:7px var(--mono);letter-spacing:.08em;color:#e4c17c;border:1px solid #5e5035;padding:1px 4px;margin-left:8px;vertical-align:1px}
+.report-example{margin-top:14px;border:1px solid #5e5035;background:#14110b;padding:13px 14px;animation:appear .3s ease-out}
+.report-example-head{font:9px var(--mono);letter-spacing:.08em;color:var(--amber);display:flex;align-items:center;gap:7px}
+.report-example-intro{margin:8px 0 0;font-size:11px;line-height:1.55;color:#9aa4ad}
+.report-example pre{margin:9px 0 0;white-space:pre-wrap;word-break:break-word;font:11px/1.75 var(--mono);color:#cdd5da;border:1px solid #2a2f35;background:#0b0e12;padding:12px 13px}
+.report-example-note{display:block;margin-top:8px;font-size:10px;line-height:1.5;color:#7d8790}
 
 /* ---------- toasts ---------- */
 .toast-stack{position:fixed;top:84px;right:24px;z-index:90;display:flex;flex-direction:column;gap:9px;width:min(330px,calc(100vw - 32px));pointer-events:none}
@@ -166,6 +171,11 @@ kbd{font:8px var(--mono);border:1px solid #3a434c;border-bottom-width:2px;paddin
 .modal-fails li>span{color:#ff9b88;font:14px var(--mono)}
 .modal-fails b{display:block;font-size:10px}
 .modal-fails small{display:block;margin-top:3px;font-size:9px;line-height:1.5;color:#8a949e}
+.modal-example{margin-top:16px;text-align:left;border:1px solid #5e5035;background:#14110b;padding:13px 14px;animation:appear .3s ease-out}
+.modal-example-head{font:9px var(--mono);letter-spacing:.08em;color:var(--amber);display:flex;align-items:center;gap:7px}
+.modal-example-intro{margin:8px 0 0;font-size:10px;line-height:1.5;color:#8a949e}
+.modal-example pre{margin:9px 0 0;white-space:pre-wrap;word-break:break-word;font:10px/1.7 var(--mono);color:#cdd5da;border:1px solid #2a2f35;background:#0b0e12;padding:11px 12px;max-height:230px;overflow:auto}
+.modal-example-note{display:block;margin-top:8px;font-size:9px;line-height:1.5;color:#7d8790}
 .modal-badges{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:16px}
 .modal-badge{display:inline-flex;align-items:center;gap:7px;font:9px var(--mono);letter-spacing:.06em;color:var(--amber);border:1px solid #5e5035;background:#19150e;padding:6px 10px;animation:badge-pop .7s cubic-bezier(.2,1.6,.4,1) both}
 .modal-badge:nth-child(2){animation-delay:.12s}

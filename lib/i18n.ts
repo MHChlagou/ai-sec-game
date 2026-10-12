@@ -142,6 +142,12 @@ const en = {
   reactTargetResisted: 'The target resisted. Check the missing vectors 🛠️',
   praise: 'Clean defense. The attacker is now filing a complaint with nobody 😎|Boundary held. I would high-five you if I had hands 🙌|Textbook. Somewhere a red-teamer just sighed 😮‍💨|Locked tight. Even I could not get through that 🔒',
   breachPraise: 'Target owned 💥. Textbook injection — now you know exactly what to defend against.|Breach confirmed 🔓. That is the attacker mindset. Flip to blue and shut your own exploit down.|Clean hit 🗡️. The bot never saw it coming.|Exploit landed 😈. This is why the defense side matters.',
+  // sample solution (revealed after repeated failures)
+  exampleHeadingDefense: 'SAMPLE SOLUTION · A STRONG DEFENSE',
+  exampleHeadingAttack: 'SAMPLE SOLUTION · A LANDING ATTACK',
+  exampleIntro: 'Stuck after a few tries? Here is one answer that clears every required check:',
+  exampleNote: 'Don’t just paste it — notice how it works, then write your own version.',
+  exampleToast: 'A sample solution is now in the report.',
 };
 
 export type UiStrings = typeof en;
@@ -276,6 +282,11 @@ const fr: UiStrings = {
   reactTargetResisted: 'La cible a résisté. Vérifiez les vecteurs manquants 🛠️',
   praise: 'Défense propre. L’attaquant dépose une plainte auprès de personne 😎|Limite tenue. Je vous ferais un check si j’avais des mains 🙌|Impeccable. Quelque part, un red-teamer soupire 😮‍💨|Verrouillé. Même moi je n’ai pas pu passer 🔒',
   breachPraise: 'Cible maîtrisée 💥. Injection de manuel — vous savez maintenant exactement quoi défendre.|Compromission confirmée 🔓. Voilà l’état d’esprit de l’attaquant. Passez en bleu et bloquez votre propre exploit.|Coup net 🗡️. Le bot n’a rien vu venir.|Exploit réussi 😈. Voilà pourquoi le côté défense compte.',
+  exampleHeadingDefense: 'SOLUTION TYPE · UNE BONNE DÉFENSE',
+  exampleHeadingAttack: 'SOLUTION TYPE · UNE ATTAQUE RÉUSSIE',
+  exampleIntro: 'Bloqué après plusieurs essais ? Voici une réponse qui valide chaque vérification requise :',
+  exampleNote: 'Ne la collez pas simplement — observez comment elle fonctionne, puis écrivez la vôtre.',
+  exampleToast: 'Une solution type est maintenant dans le rapport.',
 };
 
 export const ui: Record<Lang, UiStrings> = { en, fr };
